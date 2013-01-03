@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	 http://www.springframework.org/schema/beans/spring-beans.xsd
+	 http://www.springframework.org/schema/aop
+	 http://www.springframework.org/schema/aop/spring-aop.xsd
+	 http://www.springframework.org/schema/tx
+	 http://www.springframework.org/schema/tx/spring-tx.xsd
+	 http://www.springframework.org/schema/context
+	 http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- Set up the data access layer -->
+	<bean id="persistenceManagerFactory"
+		class="org.springframework.orm.jdo.LocalPersistenceManagerFactoryBean">
+		<property name="jdoProperties">
+			<props>
+				<prop key="javax.jdo.PersistenceManagerFactoryClass">
+					org.datanucleus.store.appengine.jdo.DatastoreJDOPersistenceManagerFactory
+				</prop>
+				<prop key="javax.jdo.option.ConnectionURL">appengine</prop>
+				<prop key="javax.jdo.option.NontransactionalRead">true</prop>
+				<prop key="javax.jdo.option.NontransactionalWrite">true</prop>
+				<prop key="javax.jdo.option.RetainValues">true</prop>
+				<prop key="datanucleus.appengine.autoCreateDatastoreTxns">true</prop>
+			</props>
+		</property>
+	</bean>
+
+	<!-- Set up the service layer -->
+	<bean class="guestbook.service.GreetingsServiceImpl" id="greetingsService">
+		<property name="greetingsDao">
+			<bean class="guestbook.GreetingsJdoDaoImpl">
+				<property name="persistenceManagerFactory" ref="persistenceManagerFactory" />
+			</bean>
+		</property>
+	</bean>
+
+	<bean class="com.google.appengine.api.users.UserServiceFactory"
+		factory-method="getUserService" id="userService" />
+
+	<!--  Set up the controller (wire up the greetings and user services) -->
+	<bean id="guestbookController" class="guestbook.controller.GuestbookController">
+		<property name="greetingsService" ref="greetingsService" />
+		<property name="userService" ref="userService" />
+	</bean>
+
+	<!-- Set up the view layer -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		id="viewResolver" p:prefix="/WEB-INF/views/" p:suffix=".jsp">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+	</bean>
+
+	<!-- Set up the controller layer -->
+	<context:component-scan base-package="com.susanacabrera.guestbook.controller" />
+
+</beans>	  

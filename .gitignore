@@ -1,0 +1,9 @@
+#Ignorados
+
+.settings
+.directory
+#.classpath
+#.project
+classes
+*~
+*.bak
